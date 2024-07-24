@@ -1,4 +1,4 @@
-package entity
+package main
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ type Room struct {
 	mu        sync.Mutex
 }
 
-func NewGameRoom(id string) *Room {
+func NewRoom(id string) *Room {
 	return &Room{
 		id:      id,
 		players: [2]*Player{},
