@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"kzinthant-d3v/go-chess-server/socket"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -16,7 +15,6 @@ type RequestBody struct {
 
 func main() {
 	r := mux.NewRouter()
-	roomManager := socket.NewRoomManager()
 
 	r.HandleFunc("/create-room", func(w http.ResponseWriter, r *http.Request) {
 		var data RequestBody

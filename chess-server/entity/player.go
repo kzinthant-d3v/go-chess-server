@@ -1,8 +1,7 @@
-package player
+package entity
 
 import (
 	"bytes"
-	"kzinthant-d3v/go-chess-server/room"
 	"log"
 	"net/http"
 	"time"
@@ -11,11 +10,11 @@ import (
 )
 
 type Player struct {
-	Id       string
-	conn     *websocket.Conn
-	gameRoom *room.Room
-	color    string
-	Send     chan []byte
+	Id    string
+	conn  *websocket.Conn
+	room  *Room
+	color string
+	send  chan []byte
 }
 
 const (
@@ -30,9 +29,14 @@ var (
 	space   = []byte{' '}
 )
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
 func (cp *Player) readPump() {
 	defer func() {
-		cp.gameRoom.leave <- cp
+		cp.room.leave <- cp
 		cp.conn.Close()
 	}()
 	cp.conn.SetReadLimit(int64(maxMessageSize))
@@ -48,7 +52,7 @@ func (cp *Player) readPump() {
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		cp.gameRoom.message <- message
+		cp.room.message <- message
 	}
 }
 
@@ -92,15 +96,15 @@ func (cp *Player) writePump() {
 	}
 }
 
-func ServeChessPlayerWs(id string, color string, gameRoom *GameRoom, w http.ResponseWriter, r *http.Request) {
+func ServeChessPlayerWs(id string, color string, room *Room, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	player := &Player{Id: id, color: color, gameRoom: gameRoom, conn: conn, send: make(chan []byte, 256)}
+	player := &Player{Id: id, color: color, room: room, conn: conn, send: make(chan []byte, 256)}
 
-	player.gameRoom.join <- player
+	player.room.join <- player
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.

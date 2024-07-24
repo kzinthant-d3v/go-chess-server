@@ -1,17 +1,16 @@
-package room
+package entity
 
 import (
 	"fmt"
-	"kzinthant-d3v/go-chess-server/player"
 	"sync"
 )
 
 type Room struct {
 	id        string
-	players   [2]*player.Player
+	players   [2]*Player
 	message   chan []byte
-	join      chan *player.Player
-	leave     chan *player.Player
+	join      chan *Player
+	leave     chan *Player
 	isRunning bool
 	stop      chan struct{}
 	mu        sync.Mutex
@@ -20,10 +19,10 @@ type Room struct {
 func NewGameRoom(id string) *Room {
 	return &Room{
 		id:      id,
-		players: [2]*player.Player{},
+		players: [2]*Player{},
 		message: make(chan []byte),
-		join:    make(chan *player.Player),
-		leave:   make(chan *player.Player),
+		join:    make(chan *Player),
+		leave:   make(chan *Player),
 		stop:    make(chan struct{}),
 		mu:      sync.Mutex{},
 	}
@@ -38,7 +37,7 @@ func (r *Room) Run() {
 		case player := <-r.join:
 			fmt.Println("someone is trying to join here")
 			if r.players[0] != nil && r.players[1] != nil {
-				player.Send <- []byte("Room is full")
+				player.send <- []byte("Room is full")
 				break
 			}
 
@@ -54,7 +53,7 @@ func (r *Room) Run() {
 			for i, p := range r.players {
 				if p != nil && p.Id == player.Id {
 					r.players[i] = nil
-					close(player.Send)
+					close(player.send)
 					fmt.Printf("Player leave the game room %v: player id %v\n", r.id, player.Id)
 
 					if r.players[0] == nil && r.players[1] == nil {
@@ -68,10 +67,10 @@ func (r *Room) Run() {
 		case msg := <-r.message:
 			for _, player := range r.players {
 				select {
-				case player.Send <- msg:
+				case player.send <- msg:
 					fmt.Printf("Message sent to player %v in game room %v, %v\n", player.Id, r.id, msg)
 				default:
-					close(player.Send)
+					close(player.send)
 				}
 			}
 
