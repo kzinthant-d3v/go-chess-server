@@ -10,11 +10,10 @@ import (
 )
 
 type Player struct {
-	Id    string
-	conn  *websocket.Conn
-	room  *Room
-	color string
-	send  chan []byte
+	Id   string
+	conn *websocket.Conn
+	game *Game
+	send chan []byte
 }
 
 const (
@@ -36,7 +35,7 @@ var upgrader = websocket.Upgrader{
 
 func (cp *Player) readPump() {
 	defer func() {
-		cp.room.leave <- cp
+		cp.game.leave <- cp
 		cp.conn.Close()
 	}()
 	cp.conn.SetReadLimit(int64(maxMessageSize))
@@ -52,7 +51,7 @@ func (cp *Player) readPump() {
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		cp.room.message <- message
+		cp.game.message <- message
 	}
 }
 
@@ -96,15 +95,15 @@ func (cp *Player) writePump() {
 	}
 }
 
-func ServeChessPlayerWs(id string, color string, room *Room, w http.ResponseWriter, r *http.Request) {
+func ServeChessPlayerWs(id string, gameRoutine *Game, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	player := &Player{Id: id, color: color, room: room, conn: conn, send: make(chan []byte, 256)}
+	player := &Player{Id: id, game: gameRoutine, conn: conn, send: make(chan []byte, 256)}
 
-	player.room.join <- player
+	player.game.join <- player
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.

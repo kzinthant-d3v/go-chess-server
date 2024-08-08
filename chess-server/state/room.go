@@ -1,11 +1,14 @@
 package state
 
 import (
+	"context"
 	"fmt"
+	"kzinthant-d3v/go-chess-server/middleware"
+	"kzinthant-d3v/go-chess-server/record"
 	"sync"
 )
 
-type Room struct {
+type Game struct {
 	id        string
 	players   [2]*Player
 	message   chan []byte
@@ -16,8 +19,8 @@ type Room struct {
 	mu        sync.Mutex
 }
 
-func NewRoom(id string) *Room {
-	return &Room{
+func NewGame(id string) *Game {
+	return &Game{
 		id:      id,
 		players: [2]*Player{},
 		message: make(chan []byte),
@@ -28,8 +31,8 @@ func NewRoom(id string) *Room {
 	}
 }
 
-func (r *Room) Run() {
-	fmt.Printf("Game room started %v\n", r.id)
+func (r *Game) Run(ctx context.Context) {
+	fmt.Printf("Game started %v\n", r.id)
 	r.isRunning = true
 
 	for {
@@ -37,29 +40,40 @@ func (r *Room) Run() {
 		case player := <-r.join:
 			fmt.Println("someone is trying to join here")
 			if r.players[0] != nil && r.players[1] != nil {
-				player.send <- []byte("Room is full")
+				player.send <- []byte("Game is full")
 				break
 			}
 
-			if r.players[0] == nil {
-				r.players[0] = player
-			} else {
-				r.players[1] = player
+			// Check if the player is already in the game
+			for _, existingPlayer := range r.players {
+				if existingPlayer != nil && existingPlayer.Id == player.Id {
+					player.send <- []byte("You are already in the game")
+					return
+				}
 			}
 
-			fmt.Printf("Player joined the game room %v: player id %v\n", r.id, player.Id)
+			// Add the player to the first available slot
+			for i, slot := range r.players {
+				if slot == nil {
+					r.players[i] = player
+					break
+				}
+			}
+
+			fmt.Printf("Player joined the game %v: player id %v\n", r.id, player.Id)
 
 		case player := <-r.leave:
 			for i, p := range r.players {
 				if p != nil && p.Id == player.Id {
 					r.players[i] = nil
 					close(player.send)
-					fmt.Printf("Player leave the game room %v: player id %v\n", r.id, player.Id)
+					fmt.Printf("Player leave the game %v: player id %v\n", r.id, player.Id)
 
 					if r.players[0] == nil && r.players[1] == nil {
+						fmt.Println("All players left the game, closing the game")
 						close(r.stop)
+						ctx.Value(middleware.GameListKey).(*record.GameList).UpdateGameRunning(r.id, false)
 					}
-
 					break
 				}
 			}
@@ -68,21 +82,21 @@ func (r *Room) Run() {
 			for _, player := range r.players {
 				select {
 				case player.send <- msg:
-					fmt.Printf("Message sent to player %v in game room %v, %v\n", player.Id, r.id, msg)
+					fmt.Printf("Message sent to player %v in game %v, %v\n", player.Id, r.id, msg)
 				default:
 					close(player.send)
 				}
 			}
 
 		case <-r.stop:
-			fmt.Printf("Game room stopped %v\n", r.id)
+			fmt.Printf("Game stopped %v\n", r.id)
 			r.isRunning = false
 			return
 		}
 	}
 }
 
-func (r *Room) checkRunning() bool {
+func (r *Game) CheckRunning() bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return r.isRunning
