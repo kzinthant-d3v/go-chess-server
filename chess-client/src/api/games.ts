@@ -17,7 +17,9 @@ export const createGameApi = async ({
       playerTime,
     }),
   });
-  return (await response.json()) as Games[];
+  const gameData = await response.json();
+  if (gameData) return gameData.gameList as Games[];
+  return [];
 };
 
 export const listGamesApi = async (): Promise<Games[]> => {

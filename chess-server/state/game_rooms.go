@@ -31,3 +31,10 @@ func (rgl *RunningGameList) GetRunningGame(gameId string) (*Game, error) {
 	}
 	return nil, fmt.Errorf("game not found")
 }
+
+func (rgl *RunningGameList) RemoveRunningGame(gameId string) {
+	fmt.Printf("Removing game %v\n", gameId)
+	rgl.mu.Lock()
+	delete(rgl.runningGames, gameId)
+	rgl.mu.Unlock()
+}

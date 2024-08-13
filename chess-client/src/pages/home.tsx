@@ -1,9 +1,12 @@
 import { Outlet } from 'react-router-dom'
+import PlayerProvider from '../context/PlayerProvider'
 
 function Home() {
   return (
     <div>
-      <Outlet />
+      <PlayerProvider>
+        <Outlet />
+      </PlayerProvider>
     </div>
   )
 }

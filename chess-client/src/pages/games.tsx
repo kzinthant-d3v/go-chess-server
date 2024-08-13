@@ -1,9 +1,13 @@
-import { FormEventHandler, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Games } from "../api/interface";
-import { listGames } from "../services";
+import { createGame, joinGame, listGames } from "../services";
+import { useNavigate } from "react-router-dom";
+import { usePlayer } from "../context/PlayerProvider";
 
 function Games() {
   const [currentGames, setCurrentGames] = useState<Games[]>([]);
+  const { playerId, updatePlayerId } = usePlayer();
+  const navigate = useNavigate()
   const areCurrentGamesEmpty = currentGames.length === 0;
 
   useEffect(() => {
@@ -12,16 +16,33 @@ function Games() {
     })();
   }, []);
 
-  const createGame: FormEventHandler<HTMLFormElement> = (element) => {
-    element.preventDefault();
-    const formData = new FormData(element.currentTarget);
-    console.log(formData.get("playerId"));
+  const createGameSubmit = async () => {
+    if (!playerId) return;
+    const createdGames = await createGame({
+      playerId,
+      playerColor: "white",
+      playerTime: 11111
+    })
+    setCurrentGames(createdGames)
   };
+
+  const joinAGame = async (gameId: string) => {
+    if (!playerId) return;
+
+    await joinGame({
+      gameId,
+      playerId
+    })
+
+    navigate(`/game/${gameId}`)
+  }
+
+
   return (
     <div>
-      <form onSubmit={createGame}>
-        <input name="playerId" />
-        <button>Create a test game</button>
+      <form>
+        <input name="playerId" onChange={(e) => updatePlayerId(e.target.value)} />
+        <button onClick={createGameSubmit}>Create a test game</button>
         <div>Games</div>
       </form>
       {!areCurrentGamesEmpty &&
@@ -29,12 +50,12 @@ function Games() {
           <div key={game.gameId}>
             <div>
               <div>
-                <h1>Game Id</h1>
                 {game.gameId}
               </div>
               <div>
                 <h1>Is game running</h1>
                 {game.isRunning}
+                <button onClick={() => joinAGame(game.gameId)}>Join</button>
               </div>
             </div>
           </div>

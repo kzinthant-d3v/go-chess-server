@@ -2,10 +2,8 @@ import { BACKEND_URL, ws } from "./config"
 import { JoinGame } from "./interface"
 
 export const getConnectWebSocketApi = ({ gameId, playerId }: JoinGame) => {
-  if (WebSocket.OPEN) throw new Error('A WebSocket is already connected')
-
   const params = new URLSearchParams({ gameId, playerId }).toString()
-  const socket = new WebSocket(`${ws}${BACKEND_URL}?${params}`)
+  const socket = new WebSocket(`${ws}${BACKEND_URL}/connect-game?${params}`)
   return socket
 }
 

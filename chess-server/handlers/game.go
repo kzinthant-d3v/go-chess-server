@@ -114,9 +114,17 @@ func JoinGameHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "game not found", http.StatusBadRequest)
 		return
 	}
+
+	jsonGamedata, err := json.Marshal(data)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(game.GameId))
+	w.Write([]byte(jsonGamedata))
 }
 
 func RunGame(w http.ResponseWriter, r *http.Request) {
@@ -153,7 +161,7 @@ func RunGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !player.Joined {
-		http.Error(w, "Please join the game first", http.StatusBadRequest)
+		http.Error(w, "please join the game first", http.StatusBadRequest)
 		return
 	}
 
@@ -164,11 +172,12 @@ func RunGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gameRoutines, err := runningGames.GetRunningGame(gameId)
+	//	fmt.Println("Game routine", gameRoutines)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	go gameRoutines.Run(r.Context())
+	go gameRoutines.Run(r.Context(), runningGames)
 	state.ServeChessPlayerWs(playerId, gameRoutines, w, r)
 }

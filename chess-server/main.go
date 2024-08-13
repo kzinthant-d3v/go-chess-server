@@ -11,7 +11,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// singleton gameList
 var gameList = record.NewGameList()
 var playerList = make(map[string]string)
 
@@ -20,7 +19,11 @@ func main() {
 	r.Use(middleware.WithGameList(gameList))
 	r.Use(middleware.WithPlayerList(&playerList))
 
-	corsHandler := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))(r)
+	corsHandler := gorillaHandlers.CORS(
+		gorillaHandlers.AllowedOrigins([]string{"http://localhost:3000", "http://127.0.0.1:3000", "http://0.0.0.0:3000"}),
+		gorillaHandlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		gorillaHandlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+	)(r)
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Root route working"))

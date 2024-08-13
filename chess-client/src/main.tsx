@@ -15,7 +15,7 @@ const router = createBrowserRouter([
         element: <Games />
       },
       {
-        path: "games/:id",
+        path: "game/:id",
         element: <Game />,
         loader: async ({ params }) => {
           return { id: params.id }

@@ -12,10 +12,10 @@ export const joinGame = async (joinGame: types.JoinGame) => {
   return api.joinGameApi(joinGame)
 }
 
-export const getConnectWebSocket = async (joinGame: types.JoinGame) => {
+export const getConnectWebSocket = (joinGame: types.JoinGame) => {
   return socketApi.getConnectWebSocketApi(joinGame)
 }
 
-export const closeWebSocket = async (socket: WebSocket) => {
+export const closeWebSocket = (socket: WebSocket) => {
   return socketApi.closeWebSocketApi(socket)
 }
