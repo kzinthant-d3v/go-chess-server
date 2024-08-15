@@ -42,6 +42,9 @@ importers:
       eslint-plugin-react-refresh:
         specifier: ^0.4.7
         version: 0.4.9(eslint@8.57.0)
+      kas-helpers:
+        specifier: ^1.2.1
+        version: 1.2.1
       typescript:
         specifier: ^5.2.2
         version: 5.5.4
@@ -852,6 +855,9 @@ packages:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
     engines: {node: '>=6'}
     hasBin: true
+
+  kas-helpers@1.2.1:
+    resolution: {integrity: sha512-wDJ3sgZnCjBe/hsqERMxEBWEUInyhkkBwN61A1WK46ejXBfY0NJW5/71UCEU4wxuZLxup5f0HMXFalKxajFD5Q==}
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -1939,6 +1945,8 @@ snapshots:
   json-stable-stringify-without-jsonify@1.0.1: {}
 
   json5@2.2.3: {}
+
+  kas-helpers@1.2.1: {}
 
   keyv@4.5.4:
     dependencies:

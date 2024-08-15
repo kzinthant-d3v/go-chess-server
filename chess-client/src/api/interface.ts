@@ -17,6 +17,10 @@ export type Games = {
   "isRunning": boolean
 }
 
+export type GameList = {
+  gameList: Games[]
+}
+
 export type CreateGame = {
   "playerId": string,
   "playerColor": ChessColors,
